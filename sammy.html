@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JARVIS Movie Protocol | Avengers Recommendation AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --marvel-red: #e62429;
+            --ironman-gold: #fcc100;
+            --arc-blue: #00d2ff;
+            --hull-dark: #0a0e17;
+            --panel-bg: rgba(16, 24, 40, 0.85);
+            --border-glow: rgba(0, 210, 255, 0.3);
+            --text-main: #f0f6fc;
+            --text-dim: #8b949e;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Rajdhani', sans-serif;
+        }
+
+        body {
+            background-color: var(--hull-dark);
+            background-image: 
+                radial-gradient(circle at 50% 10%, rgba(230, 36, 41, 0.15), transparent 40%),
+                radial-gradient(circle at 80% 80%, rgba(0, 210, 255, 0.12), transparent 40%),
+                linear-gradient(to bottom, #05070c, #0a0e17);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-x: hidden;
+        }
+
+        /* Avengers Grid Background Overlay */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(0, 210, 255, 0.03) 1px, transparent 1px),
+                        linear-gradient(90deg, rgba(0, 210, 255, 0.03) 1px, transparent 1px);
+            background-size: 30px 30px;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .hud-container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 750px;
+            background: var(--panel-bg);
+            border: 2px solid var(--border-glow);
+            border-radius: 16px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 0 30px rgba(0, 210, 255, 0.15), inset 0 0 15px rgba(0, 210, 255, 0.05);
+            padding: 35px;
+            overflow: hidden;
+        }
+
+        /* Top Header */
+        header {
+            text-align: center;
+            margin-bottom: 25px;
+            position: relative;
+        }
+
+        .logo-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.8rem;
+            font-weight: 900;
+            letter-spacing: 2px;
+            color: #fff;
+            text-transform: uppercase;
+            text-shadow: 0 0 10px rgba(230, 36, 41, 0.6);
+        }
+
+        .logo-title span {
+            color: var(--marvel-red);
+        }
+
+        .sub-text {
+            font-size: 0.95rem;
+            color: var(--arc-blue);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin-top: 5px;
+            font-weight: 600;
+        }
+
+        /* Arc Reactor Progress Bar */
+        .progress-box {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 30px;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 12px 20px;
+            border-radius: 30px;
+            border: 1px solid rgba(0, 210, 255, 0.2);
+        }
+
+        .arc-reactor {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 3px solid var(--arc-blue);
+            box-shadow: 0 0 12px var(--arc-blue), inset 0 0 8px var(--arc-blue);
+            animation: pulse 2s infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.6; transform: scale(0.95); }
+            100% { opacity: 1; transform: scale(1.05); }
+        }
+
+        .progress-bar-wrap {
+            flex: 1;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 14%;
+            background: linear-gradient(90deg, var(--arc-blue), var(--ironman-gold));
+            box-shadow: 0 0 10px var(--arc-blue);
+            transition: width 0.4s ease-in-out;
+        }
+
+        .step-count {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.85rem;
+            color: var(--ironman-gold);
+            font-weight: 700;
+        }
+
+        /* Step Panels */
+        .step-panel {
+            display: none;
+            animation: fadeIn 0.4s ease-in-out forwards;
+        }
+
+        .step-panel.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(12px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .question-title {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.25rem;
+            color: #fff;
+            margin-bottom: 20px;
+            letter-spacing: 1px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .question-title::before {
+            content: "►";
+            color: var(--marvel-red);
+            font-size: 0.9rem;
+        }
+
+        /* Options Grid */
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 14px;
+            margin-bottom: 25px;
+        }
+
+        .option-card {
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            position: relative;
+        }
+
+        .option-card:hover {
+            border-color: var(--arc-blue);
+            background: rgba(0, 210, 255, 0.1);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 210, 255, 0.2);
+        }
+
+        .option-card.selected {
+            border-color: var(--ironman-gold);
+            background: rgba(252, 193, 0, 0.12);
+            box-shadow: 0 0 15px rgba(252, 193, 0, 0.3);
+        }
+
+        .option-card h4 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.95rem;
+            color: var(--ironman-gold);
+            margin-bottom: 4px;
+        }
+
+        .option-card p {
+            font-size: 0.85rem;
+            color: var(--text-dim);
+        }
+
+        /* Buttons Nav */
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+
+        .btn {
+            font-family: 'Orbitron', sans-serif;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 12px 24px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            letter-spacing: 1px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-prev {
+            background: transparent;
+            color: var(--text-dim);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-prev:hover {
+            color: #fff;
+            border-color: #fff;
+        }
+
+        .btn-next {
+            background: linear-gradient(135deg, var(--marvel-red), #b31217);
+            color: #fff;
+            box-shadow: 0 0 15px rgba(230, 36, 41, 0.4);
+            margin-left: auto;
+        }
+
+        .btn-next:hover {
+            background: linear-gradient(135deg, #ff2e34, var(--marvel-red));
+            box-shadow: 0 0 22px rgba(230, 36, 41, 0.7);
+            transform: scale(1.02);
+        }
+
+        /* Results Screen */
+        .results-box {
+            text-align: center;
+        }
+
+        .result-card {
+            background: rgba(10, 14, 23, 0.8);
+            border: 1px solid var(--ironman-gold);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            text-align: left;
+            box-shadow: 0 0 20px rgba(252, 193, 0, 0.15);
+        }
+
+        .result-card h3 {
+            font-family: 'Orbitron', sans-serif;
+            color: var(--ironman-gold);
+            font-size: 1.4rem;
+            margin-bottom: 8px;
+        }
+
+        .match-badge {
+            display: inline-block;
+            background: var(--marvel-red);
+            color: #fff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 3px 10px;
+            border-radius: 12px;
+            margin-bottom: 12px;
+            letter-spacing: 1px;
+        }
+
+        .result-card p {
+            font-size: 0.95rem;
+            line-height: 1.5;
+            color: var(--text-main);
+            margin-bottom: 10px;
+        }
+
+        .restart-btn {
+            margin-top: 25px;
+            background: transparent;
+            border: 1px solid var(--arc-blue);
+            color: var(--arc-blue);
+        }
+
+        .restart-btn:hover {
+            background: rgba(0, 210, 255, 0.15);
+            box-shadow: 0 0 15px rgba(0, 210, 255, 0.4);
+        }
+    </style>
+</head>
+<body>
+
+<div class="hud-container">
+    <header>
+        <div class="logo-title">JARVIS <span>RECOMMENDER</span></div>
+        <div class="sub-text">A.I. Movie Protocol v4.0</div>
+    </header>
+
+    <!-- Arc Reactor Progress Tracker -->
+    <div class="progress-box" id="progressBox">
+        <div class="arc-reactor"></div>
+        <div class="progress-bar-wrap">
+            <div class="progress-bar-fill" id="progressBar"></div>
+        </div>
+        <div class="step-count" id="stepIndicator">STEP 1 / 7</div>
+    </div>
+
+    <!-- QUESTION 1 -->
+    <div class="step-panel active" id="step1">
+        <div class="question-title">SELECT PREFERRED LANGUAGE</div>
+        <div class="options-grid">
+            <div class="option-card" onclick="selectCard(1, 'English')">
+                <h4>English</h4>
+                <p>Global blockbusters & Hollywood cinema</p>
+            </div>
+            <div class="option-card" onclick="selectCard(1, 'Hindi')">
+                <h4>Hindi</h4>
+                <p>Bollywood classics & modern Indian hits</p>
+            </div>
+            <div class="option-card" onclick="selectCard(1, 'Japanese')">
+                <h4>Japanese</h4>
+                <p>Anime masterpieces & Asian thrillers</p>
+            </div>
+            <div class="option-card" onclick="selectCard(1, 'Korean')">
+                <h4>Korean</h4>
+                <p>High-tension thrillers & K-cinema</p>
+            </div>
+            <div class="option-card" onclick="selectCard(1, 'Spanish')">
+                <h4>Spanish</h4>
+                <p>Spanish drama & mystery cinema</p>
+            </div>
+            <div class="option-card" onclick="selectCard(1, 'French')">
+                <h4>French</h4>
+                <p>Art-house & classic European films</p>
+            </div>
+        </div>
+        <div class="nav-buttons">
+            <button class="btn btn-next" onclick="nextStep(1)">Next Protocol ►</button>
+        </div>
+    </div>
+
+    <!-- QUESTION 2 -->
+    <div class="step-panel" id="step2">
+        <div class="question-title">SELECT DIRECTOR VISIONARY</div>
+        <div class="options-grid">
+            <div class="option-card" onclick="selectCard(2, 'Christopher Nolan')">
+                <h4>Christopher Nolan</h4>
+                <p>Mind-bending sci-fi & non-linear plots</p>
+            </div>
+            <div class="option-card" onclick="selectCard(2, 'Steven Spielberg')">
+                <h4>Steven Spielberg</h4>
+                <p>Grand adventure & emotional spectacles</p>
+            </div>
+            <div class="option-card" onclick="selectCard(2, 'Quentin Tarantino')">
+                <h4>Quentin Tarantino</h4>
+                <p>Stylized dialogue & non-stop tension</p>
+            </div>
+            <div class="option-card" onclick="selectCard(2, 'Martin Scorsese')">
+                <h4>Martin Scorsese</h4>
+                <p>Gritty character studies & crime sagas</p>
+            </div>
+            <div class="option-card" onclick="selectCard(2, 'Hayao Miyazaki')">
+                <h4>Hayao Miyazaki</h4>
+                <p>Whimsical anime & magical fantasy</p>
+            </div>
+            <div class="option-card" onclick="selectCard(2, 'Denis Villeneuve')">
+                <h4>Denis Villeneuve</h4>
+                <p>Atmospheric sci-fi & visual scale</p>
+            </div>
+        </div>
+        <div class="nav-buttons">
+            <button class="btn btn-prev" onclick="prevStep(2)">◄ Back</button>
+            <button class="btn btn-next" onclick="nextStep(2)">Next Protocol ►</button>
+        </div>
+    </div>
+
+    <!-- QUESTION 3 -->
+    <div class="step-panel" id="step3">
+        <div class="question-title">SELECT PRIMARY GENRE</div>
+        <div class="options-grid">
+            <div class="option-card" onclick="selectCard(3, 'Sci-Fi')">
+                <h4>Sci-Fi & Future</h4>
+                <p>Futuristic tech, space & high concepts</p>
+            </div>
+            <div class="option-card" onclick="selectCard(3, 'Action')">
+                <h4>High-Octane Action</h4>
+                <p>Combative, explosive & fast-paced</p>
+            </div>
+            <div class="option-card" onclick="selectCard(3, 'Psychological Thriller')">
+                <h4>Psychological Thriller</h4>
+                <p>Twists, mystery & intense suspense</p>
+            </div>
+            <div class="option-card" onclick="selectCard(3, 'Drama')">
+                <h4>Deep Drama</h4>
+                <p>Rich character arcs & deep stories</p>
+            </div>
+        </div>
+        <div class="nav-buttons">
+            <button class="btn btn-prev" onclick="prevStep(3)">◄ Back</button>
+            <button class="btn btn-next" onclick="nextStep(3)">Next Protocol ►</button>
+        </div>
+    </div>
+
+    <!-- QUESTION 4 -->
+    <div class="step-panel" id="step4">
+        <div class="question-title">SELECT MOVIE ERA</div>
+        <div class="options-grid">
+            <div class="option-card" onclick="selectCard(4, 'Classic Era (Pre-2000)')">
+                <h4>Classic Era</h4>
+                <p>Pre-2000 iconic cinema breakthroughs</p>
+            </div>
+            <div class="option-card" onclick="selectCard(4, 'Modern Classics (2000-2015)')">
+                <h4>Modern Golden Era</h4>
+                <p>2000 - 2015 unforgettable hits</p>
+            </div>
+            <div class="option-card" onclick="selectCard(4, 'Latest Releases (2016+)')">
+                <h4>Recent Releases</h4>
+                <p>2016 to present day modern spectacles</p>
+            </div>
+        </div>
+        <div class="nav-buttons">
+            <button class="btn btn-prev" onclick="prevStep(4)">◄ Back</button>
+            <button class="btn btn-next" onclick="nextStep(4)">Next Protocol ►</button>
+        </div>
+    </div>
+
+    <!-- QUESTION 5 -->
+    <div class="step-panel" id="step5">
+        <div class="question-title">DESIRED ATMOSPHERE & MOOD</div>
+        <div class="options-grid">
+            <div class="option-card" onclick="selectCard(5, 'Fast-Paced & Thrilling')">
+                <h4>Fast & Thrilling</h4>
+                <p>Keep me on the edge of my seat</p>
+            </div>
+            <div class="option-card" onclick="selectCard(5, 'Mind-Bending & Deep')">
+                <h4>Mind-Bending</h4>
+                <p>Make me question reality and think</p>
+            </div>
+            <div class="option-card" onclick="selectCard(5, 'Dark & Gritty')">
+                <h4>Dark & Gritty</h4>
+                <p>Raw, realistic & high stakes</p>
+            </div>
+            <div class="option-card" onclick="selectCard(5, 'Inspiring & Epic')">
+                <h4>Inspiring & Epic</h4>
+                <p>Grand heroic feel & uplifting themes</p>
+            </div>
+        </div>
+        <div class="nav-buttons">
+            <button class="btn btn-prev" onclick="prevStep(5)">◄ Back</button>
+            <button class="btn btn-next" onclick="nextStep(5)">Next Protocol ►</button>
+        </div>
+    </div>
+
+    <!-- QUESTION 6 -->
+    <div class="step-panel" id="step6">
+        <div class="question-title">RUNTIME CONSTRAINTS</div>
+        <div class="options-grid">
+            <div class="option-card" onclick="selectCard(6, 'Quick Watch (< 90 mins)')">
+                <h4>Quick Watch</h4>
+                <p>Under 90 minutes fast experience</p>
+            </div>
+            <div class="option-card" onclick="selectCard(6, 'Standard (90-120 mins)')">
+                <h4>Standard Feature</h4>
+                <p>90 to 120 minutes balanced watch</p>
+            </div>
+            <div class="option-card" onclick="selectCard(6, 'Epic Experience (120+ mins)')">
+                <h4>Epic Journey</h4>
+                <p>2+ hours deep cinematic immersion</p>
+            </div>
+        </div>
+        <div class="nav-buttons">
+            <button class="btn btn-prev" onclick="prevStep(6)">◄ Back</button>
+            <button class="btn btn-next" onclick="nextStep(6)">Next Protocol ►</button>
+        </div>
+    </div>
+
+    <!-- QUESTION 7 -->
+    <div class="step-panel" id="step7">
+        <div class="question-title">VIEWING ENVIRONMENT</div>
+        <div class="options-grid">
+            <div class="option-card" onclick="selectCard(7, 'Solo Focus')">
+                <h4>Solo Focus</h4>
+                <p>Uninterrupted individual immersion</p>
+            </div>
+            <div class="option-card" onclick="selectCard(7, 'Date Night')">
+                <h4>Date Night</h4>
+                <p>Engaging, stylish & thrilling for two</p>
+            </div>
+            <div class="option-card" onclick="selectCard(7, 'Squad Gathering')">
+                <h4>Squad Gathering</h4>
+                <p>Fun, energetic & great with friends</p>
+            </div>
+        </div>
+        <div class="nav-buttons">
+            <button class="btn btn-prev" onclick="prevStep(7)">◄ Back</button>
+            <button class="btn btn-next" style="background: linear-gradient(135deg, var(--ironman-gold), #d4a000); color: #000;" onclick="computeResults()">Compute Best Match ⚡</button>
+        </div>
+    </div>
+
+    <!-- RESULTS SCREEN -->
+    <div class="step-panel" id="resultsStep">
+        <div class="results-box">
+            <div class="question-title" style="justify-content: center;">ANALYSIS COMPLETE: TOP MATCHES</div>
+            <p style="color: var(--arc-blue); margin-bottom: 15px;">JARVIS AI has computed your preferences across 7 telemetry parameters.</p>
+            
+            <div class="result-card" id="primaryResult">
+                <!-- Dynamically Inserted -->
+            </div>
+
+            <div class="result-card" id="secondaryResult" style="border-color: var(--arc-blue);">
+                <!-- Dynamically Inserted -->
+            </div>
+
+            <button class="btn restart-btn" onclick="restartSurvey()">◄ Reset Telemetry & Re-run</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // User choices store
+    const userAnswers = {
+        1: 'English',
+        2: 'Christopher Nolan',
+        3: 'Sci-Fi',
+        4: 'Modern Classics (2000-2015)',
+        5: 'Mind-Bending & Deep',
+        6: 'Standard (90-120 mins)',
+        7: 'Solo Focus'
+    };
+
+    let currentStep = 1;
+
+    function selectCard(stepNum, value) {
+        userAnswers[stepNum] = value;
+        const panel = document.getElementById(`step${stepNum}`);
+        const cards = panel.querySelectorAll('.option-card');
+        cards.forEach(card => card.classList.remove('selected'));
+        
+        // Highlight clicked card
+        event.currentTarget.classList.add('selected');
+    }
+
+    function updateProgress(step) {
+        const percent = (step / 7) * 100;
+        document.getElementById('progressBar').style.width = `${percent}%`;
+        document.getElementById('stepIndicator').innerText = `STEP ${step} / 7`;
+    }
+
+    function nextStep(step) {
+        if (step < 7) {
+            document.getElementById(`step${step}`).classList.remove('active');
+            currentStep = step + 1;
+            document.getElementById(`step${currentStep}`).classList.add('active');
+            updateProgress(currentStep);
+        }
+    }
+
+    function prevStep(step) {
+        if (step > 1) {
+            document.getElementById(`step${step}`).classList.remove('active');
+            currentStep = step - 1;
+            document.getElementById(`step${currentStep}`).classList.add('active');
+            updateProgress(currentStep);
+        }
+    }
+
+    // Offline AI Logic Recommendation Engine
+    function computeResults() {
+        document.getElementById('step7').classList.remove('active');
+        document.getElementById('progressBox').style.display = 'none';
+        document.getElementById('resultsStep').classList.add('active');
+
+        const director = userAnswers[2];
+        const genre = userAnswers[3];
+        const lang = userAnswers[1];
+
+        // Movie Database Engine
+        const movieDatabase = {
+            "Christopher Nolan": {
+                title: "Inception (2010)",
+                score: "98% MATCH",
+                desc: "A thief who steals corporate secrets through dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O.",
+                alt: "Interstellar (2014) - A team of explorers travel through a wormhole in space in an attempt to ensure humanity's survival."
+            },
+            "Steven Spielberg": {
+                title: "Minority Report (2002)",
+                score: "96% MATCH",
+                desc: "In a future where a special police unit arrests criminals before they commit crimes, an officer is accused of a future murder.",
+                alt: "Jurassic Park (1993) - A pragmatic paleontologist visiting an almost complete theme park is tasked with protecting kids after a power failure."
+            },
+            "Quentin Tarantino": {
+                title: "Pulp Fiction (1994)",
+                score: "97% MATCH",
+                desc: "The lives of two mob hitmen, a boxer, a gangster and his wife, and a pair of diner bandits intertwine in four tales of violence and redemption.",
+                alt: "Django Unchained (2012) - With the help of a German bounty-hunter, a freed slave sets out to rescue his wife from a brutal plantation owner."
+            },
+            "Martin Scorsese": {
+                title: "Shutter Island (2010)",
+                score: "95% MATCH",
+                desc: "In 1954, a U.S. Marshal investigates the disappearance of a murderer who escaped from a hospital for the criminally insane.",
+                alt: "The Departed (2006) - An underdog cop and a mole in the police force try to identify each other while infiltrating an Irish gang."
+            },
+            "Hayao Miyazaki": {
+                title: "Spirited Away (2001)",
+                score: "99% MATCH",
+                desc: "During her family's move to the suburbs, a 10-year-old girl wanders into a world ruled by gods, witches, and spirits.",
+                alt: "Howl's Moving Castle (2004) - A young woman is cursed with an old body by a spiteful witch, and her only chance rests with a young wizard."
+            },
+            "Denis Villeneuve": {
+                title: "Blade Runner 2049 (2017)",
+                score: "97% MATCH",
+                desc: "Young Blade Runner K's discovery of a long-buried secret leads him to track down former Blade Runner Rick Deckard, missing for thirty years.",
+                alt: "Dune: Part Two (2024) - Paul Atreides unites with Chani and the Fremen while seeking revenge against the conspirators who destroyed his family."
+            }
+        };
+
+        const match = movieDatabase[director] || movieDatabase["Christopher Nolan"];
+
+        document.getElementById('primaryResult').innerHTML = `
+            <span class="match-badge">OPTIMAL AI MATCH (${match.score})</span>
+            <h3>${match.title}</h3>
+            <p><strong>Language:</strong> ${lang} | <strong>Genre:</strong> ${genre} | <strong>Director Focus:</strong> ${director}</p>
+            <p>${match.desc}</p>
+        `;
+
+        document.getElementById('secondaryResult').innerHTML = `
+            <span class="match-badge" style="background: var(--arc-blue);">ALTERNATIVE SECONDARY MATCH</span>
+            <h3>${match.alt.split(" - ")[0]}</h3>
+            <p>${match.alt.split(" - ")[1]}</p>
+        `;
+    }
+
+    function restartSurvey() {
+        document.getElementById('resultsStep').classList.remove('active');
+        document.getElementById('progressBox').style.display = 'flex';
+        currentStep = 1;
+        document.getElementById('step1').classList.add('active');
+        updateProgress(1);
+    }
+
+    // Initialize Card Selections visually
+    document.addEventListener("DOMContentLoaded", () => {
+        for (let i = 1; i <= 7; i++) {
+            const panel = document.getElementById(`step${i}`);
+            if (panel) {
+                const firstCard = panel.querySelector('.option-card');
+                if (firstCard) firstCard.classList.add('selected');
+            }
+        }
+    });
+</script>
+
+</body>
+</html>

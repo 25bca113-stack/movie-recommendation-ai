@@ -1,0 +1,71 @@
+========================================================================
+
+PROJECT DEFENSE DOCUMENTATION: JARVIS AI MOVIE RECOMMENDER
+
+Team Name: Team Codex
+
+Team Members: Soha, Iffat, Sammy M
+
+Course: AI & Machine Learning Semester Assignment
+
+========================================================================
+
+
+
+1. EXECUTIVE SUMMARY
+
+-------------------
+
+The JARVIS AI Movie Recommender is a web-based expert system developed to assist 
+
+users in finding tailored film selections through a structured multi-parameter 
+
+telemetry protocol. Styled after Iron Man's JARVIS interface, the application 
+
+evaluates user preferences across seven distinct diagnostic categories.
+
+
+
+2. AI & ML ARCHITECTURAL CLASSIFICATION
+
+----------------------------------------
+
+Classification: Classical / Symbolic AI (Rule-Based Expert System)
+
+
+
+Key Components:
+
+- User Telemetry Protocol: Captures 7 operational constraints (Language, Director, 
+
+  Genre, Era, Mood, Runtime, Context).
+
+- Inference Engine: Evaluates parameter vectors against a built-in knowledge 
+
+  matrix to generate optimal (Primary) and fallback (Secondary) recommendations.
+
+- Deterministic Execution: Guarantees zero latency and predictable output state 
+
+  without external API token costs.
+
+
+
+3. REPOSITORY STRUCTURE
+
+----------------------
+
+/
+
+├── index.html        (Main UI, CSS HUD Styles, and JS Inference Engine)
+
+├── README.md         (Project Overview and Team Documentation)
+
+├── CONTRIBUTING.md   (Contributor Guidelines)
+
+├── LICENSE           (MIT License)
+
+├── .gitignore        (Git Ignore Configuration)
+
+└── project_overview.txt (System Architecture & Course Defense Notes)
+
+========================================================================

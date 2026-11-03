@@ -1,0 +1,23 @@
+Operating System files
+
+.DS_Store
+Thumbs.db
+
+Editor configurations
+
+.vscode/
+.idea/
+*.swp
+*.swo
+
+Node & Build tool artifacts (if added later)
+
+node_modules/
+dist/
+build/
+.vercel
+
+Environment variables
+
+.env
+.env.local
